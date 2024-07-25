@@ -1,24 +1,15 @@
 const std = @import("std");
+const memory = @import("./memory.zig");
+const uptime = @import("./uptime.zig");
 
 pub fn main() !void {
-    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    const allocator = std.heap.page_allocator;
 
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    const stdout = std.io.getStdOut().writer();
 
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    const memory_info = try memory.fetchInfo(allocator);
+    const uptime_info = try uptime.fetchInfo(allocator);
 
-    try bw.flush(); // don't forget to flush!
-}
-
-test "simple test" {
-    var list = std.ArrayList(i32).init(std.testing.allocator);
-    defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
-    try list.append(42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
+    try stdout.print("Memory: {} MiB\n", .{memory_info.amount_total / 1000});
+    try stdout.print("Uptime: {} hours, {} mins\n", .{ uptime_info.active / 60 / 60, uptime_info.active / 60 % 60 });
 }
