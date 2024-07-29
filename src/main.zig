@@ -1,18 +1,43 @@
 const std = @import("std");
-const memory = @import("./memory.zig");
-const uptime = @import("./uptime.zig");
-const os = @import("./os.zig");
+const cli = @import("cli.zig");
+const system_info = @import("system_info.zig");
 
 pub fn main() !void {
+    // Obtain allocator
     const allocator = std.heap.page_allocator;
 
+    // Obtain standard output
     const stdout = std.io.getStdOut().writer();
 
-    const memory_info = try memory.fetchInfo(allocator);
-    const uptime_info = try uptime.fetchInfo(allocator);
-    const os_info = try os.fetchOSInfo(allocator);
+    // Fetch OS info
+    var os_info = try system_info.os.OSInfo.fetch(allocator);
+    defer os_info.deinit();
 
-    try stdout.print("Memory: {} MiB\n", .{memory_info.amount_total / 1000});
-    try stdout.print("Uptime: {} hours, {} mins\n", .{ uptime_info.active / 60 / 60, uptime_info.active / 60 % 60 });
-    try stdout.print("Hostname: {s}\n", .{os_info.host_name});
+    // Fetch memory info
+    const mem_info = try system_info.memory.MemoryInfo.fetch(allocator);
+
+    var arguments = try std.process.argsWithAllocator(allocator);
+    defer arguments.deinit();
+
+    var argparse = try cli.ArgumentsParser.init(allocator);
+    argparse.deinit();
+
+    try argparse.parse(arguments);
+
+    if (argparse.is_existent("--help")) {
+        try stdout.print("Usage: sysfetch [options]\n", .{});
+        try stdout.print("Options:\n", .{});
+        try stdout.print("  --help         Display this information.\n", .{});
+        try stdout.print("  --version      Display sysfetch version.\n", .{});
+        try stdout.print("  --summary      Display system summary.\n", .{});
+    } else if (argparse.is_existent("--version")) {
+        try stdout.print("Sysfetch 0.0.1\n", .{});
+    } else if (argparse.is_existent("--summary") or argparse.len() == 1) {
+        try stdout.print("OS\n", .{});
+        try stdout.print("  Hostname: {s}\n", .{os_info.hostname});
+        try stdout.print("  Uptime: {} hours, {} mins\n", .{ os_info.uptime / 60 / 60, os_info.uptime / 60 % 60 });
+        try stdout.print("Memory\n", .{});
+        try stdout.print("  Total: {} MiB\n", .{mem_info.total});
+        try stdout.print("  Available: {} MiB\n", .{mem_info.available});
+    }
 }
