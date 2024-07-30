@@ -1,6 +1,6 @@
 const std = @import("std");
 const cli = @import("cli.zig");
-const system_info = @import("system_info.zig");
+const sysfetch = @import("sysfetch.zig");
 
 pub fn main() !void {
     // Obtain allocator
@@ -10,11 +10,10 @@ pub fn main() !void {
     const stdout = std.io.getStdOut().writer();
 
     // Fetch OS info
-    var os_info = try system_info.os.OSInfo.fetch(allocator);
-    defer os_info.deinit();
+    const os_info = try sysfetch.getOSInfo(allocator);
 
     // Fetch memory info
-    const mem_info = try system_info.memory.MemoryInfo.fetch(allocator);
+    const mem_info = try sysfetch.getMemoryInfo(allocator);
 
     var arguments = try std.process.argsWithAllocator(allocator);
     defer arguments.deinit();
@@ -37,7 +36,7 @@ pub fn main() !void {
         try stdout.print("  Hostname: {s}\n", .{os_info.hostname});
         try stdout.print("  Uptime: {} hours, {} mins\n", .{ os_info.uptime / 60 / 60, os_info.uptime / 60 % 60 });
         try stdout.print("Memory\n", .{});
-        try stdout.print("  Total: {} MiB\n", .{mem_info.total});
-        try stdout.print("  Available: {} MiB\n", .{mem_info.available});
+        try stdout.print("  Total: {} KiB\n", .{mem_info.total});
+        try stdout.print("  Available: {} KiB\n", .{mem_info.available});
     }
 }
