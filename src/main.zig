@@ -15,6 +15,9 @@ pub fn main() !void {
     // Fetch memory info
     const mem_info = try sysfetch.getMemoryInfo(allocator);
 
+    // Fetch cpu info
+    const cpu_info = try sysfetch.getCPUInfo(allocator);
+
     var arguments = try std.process.argsWithAllocator(allocator);
     defer arguments.deinit();
 
@@ -35,6 +38,9 @@ pub fn main() !void {
         try stdout.print("OS\n", .{});
         try stdout.print("  Hostname: {s}\n", .{os_info.hostname});
         try stdout.print("  Uptime: {} hours, {} mins\n", .{ os_info.uptime / 60 / 60, os_info.uptime / 60 % 60 });
+        try stdout.print("CPU\n", .{});
+        try stdout.print("  Model: {s}\n", .{cpu_info.model});
+        try stdout.print("  Frequency: {} MHz\n", .{cpu_info.frequency});
         try stdout.print("Memory\n", .{});
         try stdout.print("  Total: {} KiB\n", .{mem_info.total});
         try stdout.print("  Available: {} KiB\n", .{mem_info.available});

@@ -9,6 +9,7 @@ pub const OSInfo = struct {
 
 pub const CPUInfo = struct {
     model: []u8,
+    frequency: u32,
 };
 
 pub const MemoryInfo = struct {
@@ -49,9 +50,37 @@ pub fn getOSInfo(allocator: Allocator) !OSInfo {
     };
 }
 
-pub fn getCPUInfo() !CPUInfo {
+pub fn getCPUInfo(allocator: Allocator) !CPUInfo {
+    // Open cpuinfo file
+    const cpuinfo_file = try std.fs.openFileAbsolute("/proc/cpuinfo", .{ .mode = .read_only });
+    defer cpuinfo_file.close();
+
+    // Parse cpuinfo file
+    var cpuinfo_keys = std.ArrayList([]u8).init(allocator);
+    var cpuinfo_values = std.ArrayList(?[]u8).init(allocator);
+    const cpuinfo_reader = cpuinfo_file.reader();
+    while (try cpuinfo_reader.readUntilDelimiterOrEofAlloc(allocator, '\n', 1024)) |line| {
+        const separator_index = std.mem.indexOf(u8, line, ":");
+
+        if (separator_index == null) {
+            continue;
+        }
+
+        const key = utils.stripBack(line[0..separator_index.?]);
+        const value: ?[]u8 = if (separator_index.? + 1 == line.len) null else line[separator_index.? + 2 ..];
+
+        try cpuinfo_keys.append(key);
+        try cpuinfo_values.append(value);
+    }
+
+    const model = cpuinfo_values.items[4].?;
+
+    const frequency_dot = std.mem.indexOf(u8, cpuinfo_values.items[7].?, ".").?;
+    const frequency = try std.fmt.parseInt(u32, cpuinfo_values.items[7].?[0..frequency_dot], 10);
+
     return CPUInfo{
-        .model = "",
+        .model = model,
+        .frequency = frequency,
     };
 }
 
