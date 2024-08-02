@@ -38,6 +38,7 @@ pub fn main() !void {
         try stdout.print("OS\n", .{});
         try stdout.print("  Hostname: {s}\n", .{os_info.hostname});
         try stdout.print("  Uptime: {} hours, {} mins\n", .{ os_info.uptime / 60 / 60, os_info.uptime / 60 % 60 });
+        try stdout.print("  Kernel: {s}\n", .{os_info.kernel});
         try stdout.print("CPU\n", .{});
         try stdout.print("  Model: {s}\n", .{cpu_info.model});
         try stdout.print("  Frequency: {} MHz\n", .{cpu_info.frequency});

@@ -5,6 +5,7 @@ const Allocator = std.mem.Allocator;
 pub const OSInfo = struct {
     hostname: []u8,
     uptime: u32,
+    kernel: []u8,
 };
 
 pub const CPUInfo = struct {
@@ -44,9 +45,23 @@ pub fn getOSInfo(allocator: Allocator) !OSInfo {
         break :blk try std.fmt.parseInt(u32, uptime_text[0 .. separator_index - 3], 10);
     };
 
+    const kernel: []u8 = blk: {
+        const version_file = try std.fs.openFileAbsolute("/proc/version", .{ .mode = .read_only });
+        defer version_file.close();
+
+        const version_reader = version_file.reader();
+        var segments = std.ArrayList([]u8).init(allocator);
+        while (try version_reader.readUntilDelimiterOrEofAlloc(allocator, ' ', 1024)) |segment| {
+            try segments.append(segment);
+        }
+
+        break :blk segments.items[2];
+    };
+
     return OSInfo{
         .hostname = hostname,
         .uptime = uptime,
+        .kernel = kernel,
     };
 }
 
