@@ -21,7 +21,16 @@ pub const MemoryInfo = struct {
 pub fn getOSInfo(allocator: Allocator) !OSInfo {
     const hostname = blk: {
         // Open hostname file
-        const hostname_file = try std.fs.openFileAbsolute("/etc/hostname", .{ .mode = .read_only });
+        const hostname_file = std.fs.openFileAbsolute("/etc/hostname", .{ .mode = .read_only }) catch |e| {
+            if (e == error.FileNotFound) {
+                std.debug.print("FileNotFound: Could not find /etc/hostname\n", .{});
+                std.process.exit(255);
+            } else if (e == error.AccessDenied) {
+                std.debug.print("AccessDenied: could not access /etc/hostname\n", .{});
+                std.process.exit(255);
+            }
+            return e;
+        };
         defer hostname_file.close();
 
         // Read hostname from file
@@ -33,7 +42,16 @@ pub fn getOSInfo(allocator: Allocator) !OSInfo {
 
     const uptime = blk: {
         // Open uptime file
-        const uptime_file = try std.fs.openFileAbsolute("/proc/uptime", .{ .mode = .read_only });
+        const uptime_file = std.fs.openFileAbsolute("/proc/uptime", .{ .mode = .read_only }) catch |e| {
+            if (e == error.FileNotFound) {
+                std.debug.print("FileNotFound: Could not find /etc/uptime\n", .{});
+                std.process.exit(255);
+            } else if (e == error.AccessDenied) {
+                std.debug.print("AccessDenied: could not access /etc/uptime\n", .{});
+                std.process.exit(255);
+            }
+            return e;
+        };
         defer uptime_file.close();
 
         // Read uptime from file
@@ -46,7 +64,16 @@ pub fn getOSInfo(allocator: Allocator) !OSInfo {
     };
 
     const kernel: []u8 = blk: {
-        const version_file = try std.fs.openFileAbsolute("/proc/version", .{ .mode = .read_only });
+        const version_file = std.fs.openFileAbsolute("/proc/version", .{ .mode = .read_only }) catch |e| {
+            if (e == error.FileNotFound) {
+                std.debug.print("FileNotFound: Could not find /etc/version\n", .{});
+                std.process.exit(255);
+            } else if (e == error.AccessDenied) {
+                std.debug.print("AccessDenied: could not access /etc/version\n", .{});
+                std.process.exit(255);
+            }
+            return e;
+        };
         defer version_file.close();
 
         const version_reader = version_file.reader();
@@ -67,7 +94,16 @@ pub fn getOSInfo(allocator: Allocator) !OSInfo {
 
 pub fn getCPUInfo(allocator: Allocator) !CPUInfo {
     // Open cpuinfo file
-    const cpuinfo_file = try std.fs.openFileAbsolute("/proc/cpuinfo", .{ .mode = .read_only });
+    const cpuinfo_file = std.fs.openFileAbsolute("/proc/cpuinfo", .{ .mode = .read_only }) catch |e| {
+        if (e == error.FileNotFound) {
+            std.debug.print("FileNotFound: Could not find /etc/cpuinfo\n", .{});
+            std.process.exit(255);
+        } else if (e == error.AccessDenied) {
+            std.debug.print("AccessDenied: could not access /etc/cpuinfo\n", .{});
+            std.process.exit(255);
+        }
+        return e;
+    };
     defer cpuinfo_file.close();
 
     // Parse cpuinfo file
@@ -101,7 +137,16 @@ pub fn getCPUInfo(allocator: Allocator) !CPUInfo {
 
 pub fn getMemoryInfo(allocator: Allocator) !MemoryInfo {
     // Open memory info file
-    const meminfo_file = try std.fs.openFileAbsolute("/proc/meminfo", .{ .mode = .read_only });
+    const meminfo_file = std.fs.openFileAbsolute("/proc/meminfo", .{ .mode = .read_only }) catch |e| {
+        if (e == error.FileNotFound) {
+            std.debug.print("FileNotFound: Could not find /etc/meminfo\n", .{});
+            std.process.exit(255);
+        } else if (e == error.AccessDenied) {
+            std.debug.print("AccessDenied: could not acces/etc/meminfo\n", .{});
+            std.process.exit(255);
+        }
+        return e;
+    };
     defer meminfo_file.close();
 
     // Parse memory info file
