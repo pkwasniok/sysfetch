@@ -3,8 +3,9 @@ const cli = @import("cli.zig");
 const sysfetch = @import("sysfetch.zig");
 
 pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     // Obtain allocator
-    const allocator = std.heap.page_allocator;
+    const allocator = gpa.allocator();
 
     // Obtain standard output
     const stdout = std.io.getStdOut().writer();
