@@ -7,13 +7,16 @@ pub fn main() !void {
 
     const allocator = gpa.allocator();
 
+    const stdout = std.io.getStdOut().writer();
+
     var cpuinfo = sysfetch.CPUInfo.init(allocator);
     defer cpuinfo.deinit();
 
     try cpuinfo.fetch();
 
-    std.debug.print("Manufacturer: {?s}\n", .{cpuinfo.manufacturer_name});
-    std.debug.print("Model: {?s}\n", .{cpuinfo.model_name});
-    std.debug.print("Cores: {?d}\n", .{cpuinfo.cores});
-    std.debug.print("Threads: {?d}\n", .{cpuinfo.threads});
+    try stdout.print("CPU\n", .{});
+    try stdout.print(" ├─ Manufacturer: {?s}\n", .{cpuinfo.manufacturer_name});
+    try stdout.print(" ├─ Model: {?s}\n", .{cpuinfo.model_name});
+    try stdout.print(" └─ No. of cores: {?d}\n", .{cpuinfo.cores});
+    try stdout.print("    └─ No. of threads: {?d}\n", .{cpuinfo.threads});
 }
