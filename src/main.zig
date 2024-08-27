@@ -9,14 +9,18 @@ pub fn main() !void {
 
     const stdout = std.io.getStdOut().writer();
 
-    var cpuinfo = sysfetch.CPUInfo.init(allocator);
-    defer cpuinfo.deinit();
+    var cpu_info = sysfetch.CPUInfo.init(allocator);
+    defer cpu_info.deinit();
 
-    try cpuinfo.fetch();
+    var memory_info = sysfetch.MemoryInfo.init(allocator);
+    defer memory_info.deinit();
+
+    try cpu_info.fetch();
+    try memory_info.fetch();
 
     try stdout.print("CPU\n", .{});
-    try stdout.print(" ├─ Manufacturer: {?s}\n", .{cpuinfo.manufacturer_name});
-    try stdout.print(" ├─ Model: {?s}\n", .{cpuinfo.model_name});
-    try stdout.print(" └─ No. of cores: {?d}\n", .{cpuinfo.cores});
-    try stdout.print("    └─ No. of threads: {?d}\n", .{cpuinfo.threads});
+    try stdout.print(" ├─ Manufacturer: {?s}\n", .{cpu_info.manufacturer_name});
+    try stdout.print(" ├─ Model: {?s}\n", .{cpu_info.model_name});
+    try stdout.print(" └─ No. of cores: {?d}\n", .{cpu_info.cores});
+    try stdout.print("    └─ No. of threads: {?d}\n", .{cpu_info.threads});
 }
