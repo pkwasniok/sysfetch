@@ -63,3 +63,28 @@ pub const MemoryInfo = struct {
         }
     }
 };
+
+test "MemoryInfo fetch" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer std.debug.assert(gpa.deinit() == .ok);
+
+    const allocator = gpa.allocator();
+
+    var memory_info = MemoryInfo.init(allocator);
+    defer memory_info.deinit();
+
+    try memory_info.fetch();
+}
+
+test "MemoryInfo double fetch" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer std.debug.assert(gpa.deinit() == .ok);
+
+    const allocator = gpa.allocator();
+
+    var memory_info = MemoryInfo.init(allocator);
+    defer memory_info.deinit();
+
+    try memory_info.fetch();
+    try memory_info.fetch();
+}

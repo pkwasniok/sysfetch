@@ -24,6 +24,6 @@ pub fn main() !void {
     try stdout.print(" └─ No. of cores: {?d}\n", .{cpu_info.cores});
     try stdout.print("    └─ No. of threads: {?d}\n", .{cpu_info.threads});
     try stdout.print("Memory\n", .{});
-    try stdout.print(" └─ Total: {?d} kB\n", .{memory_info.physical_total});
-    try stdout.print("    └─ Free: {?d} kB\n", .{memory_info.physical_free});
+    try stdout.print(" └─ Total: {?d} KiB\n", .{memory_info.physical_total});
+    try stdout.print("    └─ Free: {?d} KiB\n", .{memory_info.physical_free});
 }

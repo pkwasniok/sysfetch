@@ -95,3 +95,28 @@ pub const CPUInfo = struct {
         }
     }
 };
+
+test "CPUInfo fetch" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer std.debug.assert(gpa.deinit() == .ok);
+
+    const allocator = gpa.allocator();
+
+    var cpu_info = CPUInfo.init(allocator);
+    defer cpu_info.deinit();
+
+    try cpu_info.fetch();
+}
+
+test "CPUInfo double fetch" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer std.debug.assert(gpa.deinit() == .ok);
+
+    const allocator = gpa.allocator();
+
+    var cpu_info = CPUInfo.init(allocator);
+    defer cpu_info.deinit();
+
+    try cpu_info.fetch();
+    try cpu_info.fetch();
+}
