@@ -4,12 +4,14 @@ pub const MemoryInfo = struct {
     const Self = @This();
 
     allocator: std.mem.Allocator,
-    total: ?u32,
+    physical_total: ?u32,
+    physical_free: ?u32,
 
     pub fn init(allocator: std.mem.Allocator) Self {
         return Self{
             .allocator = allocator,
-            .total = null,
+            .physical_total = null,
+            .physical_free = null,
         };
     }
 
@@ -53,7 +55,11 @@ pub const MemoryInfo = struct {
                 }
             }
 
-            // std.debug.print("\"{s}\": \"{s}\"\n", .{ buffer_key.items, buffer_value.items });
+            if (std.mem.eql(u8, buffer_key.items, "MemTotal")) {
+                self.physical_total = std.fmt.parseInt(u32, buffer_value.items[0 .. buffer_value.items.len - 3], 10) catch null;
+            } else if (std.mem.eql(u8, buffer_key.items, "MemAvailable")) {
+                self.physical_free = std.fmt.parseInt(u32, buffer_value.items[0 .. buffer_value.items.len - 3], 10) catch null;
+            }
         }
     }
 };
