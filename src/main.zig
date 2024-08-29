@@ -1,24 +1,29 @@
 const std = @import("std");
+const sysfetch = @import("root.zig");
 
 pub fn main() !void {
-    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer std.debug.assert(gpa.deinit() == .ok);
 
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    const allocator = gpa.allocator();
 
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    const stdout = std.io.getStdOut().writer();
 
-    try bw.flush(); // don't forget to flush!
-}
+    var cpu_info = sysfetch.CPUInfo.init(allocator);
+    defer cpu_info.deinit();
 
-test "simple test" {
-    var list = std.ArrayList(i32).init(std.testing.allocator);
-    defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
-    try list.append(42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
+    var memory_info = sysfetch.MemoryInfo.init(allocator);
+    defer memory_info.deinit();
+
+    try cpu_info.fetch();
+    try memory_info.fetch();
+
+    try stdout.print("CPU\n", .{});
+    try stdout.print(" ├─ Manufacturer: {?s}\n", .{cpu_info.manufacturer_name});
+    try stdout.print(" ├─ Model: {?s}\n", .{cpu_info.model_name});
+    try stdout.print(" └─ No. of cores: {?d}\n", .{cpu_info.cores});
+    try stdout.print("    └─ No. of threads: {?d}\n", .{cpu_info.threads});
+    try stdout.print("Memory\n", .{});
+    try stdout.print(" └─ Total: {?d} KiB\n", .{memory_info.physical_total});
+    try stdout.print("    └─ Free: {?d} KiB\n", .{memory_info.physical_free});
 }

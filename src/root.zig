@@ -1,10 +1,11 @@
 const std = @import("std");
-const testing = std.testing;
+const cpu = @import("./cpu.zig");
+const memory = @import("./memory.zig");
 
-export fn add(a: i32, b: i32) i32 {
-    return a + b;
-}
+pub const CPUInfo = cpu.CPUInfo;
+pub const MemoryInfo = memory.MemoryInfo;
 
-test "basic add functionality" {
-    try testing.expect(add(3, 7) == 10);
+test {
+    std.testing.refAllDecls(cpu);
+    std.testing.refAllDecls(memory);
 }
