@@ -1,6 +1,7 @@
 const std = @import("std");
 const cli = @import("./cli.zig");
-const sysfetch = @import("root.zig");
+const config = @import("./config.zig");
+const sysfetch = @import("./root.zig");
 
 const Test = struct {
     field_a: bool,
@@ -23,7 +24,7 @@ pub fn main() !void {
                 \\
                 \\ Sysfetch is a Neofetch alternative for Linux written in Zig.
                 \\
-                \\ Options:
+                \\ OPTIONS:
                 \\     DEFAULT      display system information
                 \\     --help       display help message
                 \\     --version    display version information
