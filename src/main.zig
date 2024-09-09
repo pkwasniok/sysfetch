@@ -3,10 +3,6 @@ const cli = @import("./cli.zig");
 const config = @import("./config.zig");
 const sysfetch = @import("./root.zig");
 
-const Test = struct {
-    field_a: bool,
-};
-
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(gpa.deinit() == .ok);
