@@ -48,10 +48,10 @@ pub fn main() !void {
             try stdout.print("├─Manufacturer: {?s}\n", .{cpu_info.manufacturer_name});
             try stdout.print("├─Model: {?s}\n", .{cpu_info.model_name});
             try stdout.print("└─No. of cores: {?d}\n", .{cpu_info.cores});
-            try stdout.print("  └─ No. of threads: {?d}\n", .{cpu_info.threads});
+            try stdout.print("  └─No. of threads: {?d}\n", .{cpu_info.threads});
             try stdout.print("Memory\n", .{});
             try stdout.print("└─Total: {?d} KiB\n", .{memory_info.physical_total});
-            try stdout.print("  └─ Free: {?d} KiB\n", .{memory_info.physical_free});
+            try stdout.print("  └─Free: {?d} KiB\n", .{memory_info.physical_free});
             try stdout.print("OS\n", .{});
             try stdout.print("├─Name: {?s}\n", .{os_info.name});
             try stdout.print("└─Version: {?s}\n", .{os_info.version});
