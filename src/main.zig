@@ -1,7 +1,8 @@
 const std = @import("std");
 const cli = @import("./cli.zig");
-const config = @import("./config.zig");
+const template = @import("./template.zig");
 const sysfetch = @import("./root.zig");
+const String = @import("containers").ASCIIString;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -44,17 +45,72 @@ pub fn main() !void {
             try memory_info.fetch();
             try os_info.fetch();
 
-            try stdout.print("CPU\n", .{});
-            try stdout.print("├─Manufacturer: {?s}\n", .{cpu_info.manufacturer_name});
-            try stdout.print("├─Model: {?s}\n", .{cpu_info.model_name});
-            try stdout.print("└─No. of cores: {?d}\n", .{cpu_info.cores});
-            try stdout.print("  └─No. of threads: {?d}\n", .{cpu_info.threads});
-            try stdout.print("Memory\n", .{});
-            try stdout.print("└─Total: {?d} KiB\n", .{memory_info.physical_total});
-            try stdout.print("  └─Free: {?d} KiB\n", .{memory_info.physical_free});
-            try stdout.print("OS\n", .{});
-            try stdout.print("├─Name: {?s}\n", .{os_info.name});
-            try stdout.print("└─Version: {?s}\n", .{os_info.version});
+            var map = std.StringHashMap([]const u8).init(allocator);
+            defer map.deinit();
+
+            if (cpu_info.model_name) |model_name| {
+                try map.put("cpu.model", model_name);
+            }
+
+            if (cpu_info.manufacturer_name) |manufacturer_name| {
+                try map.put("cpu.manufacturer", manufacturer_name);
+            }
+
+            var cpu_cores: ?[]u8 = null;
+            if (cpu_info.cores) |cores| {
+                cpu_cores = try std.fmt.allocPrint(allocator, "{d}", .{cores});
+                try map.put("cpu.cores", cpu_cores.?);
+            }
+            defer if (cpu_cores) |cores| allocator.free(cores);
+
+            var cpu_threads: ?[]u8 = null;
+            if (cpu_info.threads) |threads| {
+                cpu_threads = try std.fmt.allocPrint(allocator, "{d}", .{threads});
+                try map.put("cpu.threads", cpu_threads.?);
+            }
+            defer if (cpu_threads) |threads| allocator.free(threads);
+
+            var memory_total: ?[]u8 = null;
+            if (memory_info.physical_total) |total| {
+                memory_total = try std.fmt.allocPrint(allocator, "{d}", .{total});
+                try map.put("memory.total", memory_total.?);
+            }
+            defer if (memory_total) |total| allocator.free(total);
+
+            var memory_free: ?[]u8 = null;
+            if (memory_info.physical_free) |free| {
+                memory_free = try std.fmt.allocPrint(allocator, "{d}", .{free});
+                try map.put("memory.free", memory_free.?);
+            }
+            defer if (memory_free) |free| allocator.free(free);
+
+            if (os_info.name) |value| {
+                try map.put("os.name", value.string);
+            }
+
+            if (os_info.version) |value| {
+                try map.put("os.version", value.string);
+            }
+
+            const text =
+                \\CPU
+                \\├─Manufacturer: {cpu.manufacturer}
+                \\├─Model: {cpu.model}
+                \\└─No. of cores: {cpu.cores}
+                \\  └─No. of threads: {cpu.threads}
+                \\Memory
+                \\└─Total: {memory.total} KiB
+                \\  └─Free: {memory.free} KiB
+                \\OS
+                \\├─Name: {os.name}
+                \\└─Version: {os.version}
+                \\
+            ;
+
+            var result = try template.parse(allocator, text, map);
+            defer result.deinit();
+
+            try stdout.print("{s}", .{result});
         },
     }
 }
